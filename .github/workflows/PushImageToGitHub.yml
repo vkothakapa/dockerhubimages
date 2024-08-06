@@ -14,7 +14,6 @@ env:
   ACR_USERNAME: shankartest
   ACR_PASSWORD: zieluBp1OUepT8O7dEpJksFZoXld+eA9qQdXKpOqtq+ACRCnqDtC
   CONTAINER_APPNAME: sg-bamserver
-  TEST_AZURE_CREDENTIALS: n_C8Q~myQoBSsinuRtAqSIJsWqapCTE1n0T6XbzZ
   RESOURCE_GROUP: test-rg
 
 jobs:
@@ -26,10 +25,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Azure CLI Login
+        id: az-login
+        run: |
+          echo "Please run 'az login' command and authenticate."
+          az login --use-device-code
+          echo "Azure login completed."
+
       - name: Azure Container Registry login
         run: |
-          # az acr login --name ${{ env.ACR_NAME }}
-          #az acr login --name ${{ env.ACR_NAME }} --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           az acr login --name ${{ env.ACR_NAME }} --username ${{ env.ACR_USERNAME }} --password ${{ env.ACR_PASSWORD }}
 
       - run: docker context create builders
@@ -66,13 +74,7 @@ jobs:
           file: ./DockerFileFolder/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
-      - name: 'Login via Azure CLI'
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-          
       - name: Execute Azure Container Apps Build and Deploy Action
         uses: azure/container-apps-deploy-action@v1
         with:
