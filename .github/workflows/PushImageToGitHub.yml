@@ -66,6 +66,7 @@ jobs:
           file: ./DockerFileFolder/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          
       - name: 'Login via Azure CLI'
         uses: azure/login@v1
         with:
