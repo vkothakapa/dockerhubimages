@@ -64,10 +64,15 @@ jobs:
           file: ./DockerFileFolder/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Log in to Azure
+      - name: 'Login via Azure CLI'
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.TEST_AZURE_CREDENTIALS }}
+          client-id: e111417f-256a-4854-af19-ada3c529185a
+          tenant-id: ee671467-8db8-43d4-8edb-a094a688240a
+          subscription-id: a0b18b46-9e44-40cb-b760-d3db99aceadf
+          client-secret: n_C8Q~myQoBSsinuRtAqSIJsWqapCTE1n0T6XbzZ
+          auth-type: 'SERVICE_PRINCIPAL'
+          
       - name: Build and deploy Container App
         uses: azure/container-apps-deploy-action@v1
         with:
