@@ -75,10 +75,11 @@ jobs:
           client-secret: n_C8Q~myQoBSsinuRtAqSIJsWqapCTE1n0T6XbzZ
           auth-type: 'SERVICE_PRINCIPAL'
           
-      - name: Build and deploy Container App
+      - name: Execute Azure Container Apps Build and Deploy Action
         uses: azure/container-apps-deploy-action@v1
         with:
-          acrName: ${{ env.ACR_NAME }}
+          imageToDeploy: ${{ env.ACR_REPO }}:${{ steps.head_sha_short.outputs.head_sha_short }}
           containerAppName: ${{ env.CONTAINER_APPNAME }}
+          containerAppEnvironment: ${{ env.TEST_EXISTING_CONTAINER_APP_ENV }}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
-          imageToDeploy: ${{ env.ACR_NAME }}.azurecr.io/app:${{ github.sha }}
+          disableTelemetry: ${{ env.TEST_DISABLE_TELEMETRY }}
