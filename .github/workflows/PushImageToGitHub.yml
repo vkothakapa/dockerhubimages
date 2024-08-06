@@ -15,6 +15,7 @@ env:
   ACR_PASSWORD: zieluBp1OUepT8O7dEpJksFZoXld+eA9qQdXKpOqtq+ACRCnqDtC
   CONTAINER_APPNAME: sg-bamserver
   RESOURCE_GROUP: test-rg
+  CONTAINER_APP_ENV: managedEnvironment-testrg-8dc9
 
 jobs:
   build_and_deploy:
@@ -80,6 +81,6 @@ jobs:
         with:
           imageToDeploy: ${{ env.ACR_REPO }}:${{ steps.head_sha_short.outputs.head_sha_short }}
           containerAppName: ${{ env.CONTAINER_APPNAME }}
-          containerAppEnvironment: ${{ env.TEST_EXISTING_CONTAINER_APP_ENV }}
+          containerAppEnvironment: ${{ env.CONTAINER_APP_ENV }}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
-          disableTelemetry: ${{ env.TEST_DISABLE_TELEMETRY }}
+
