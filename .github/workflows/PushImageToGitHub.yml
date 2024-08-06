@@ -1,23 +1,74 @@
 name: Build and Push Docker image to Docker Hub
 
 on: push
+
+env:
+  ACR_NAME: shankartest
+  ACR_REPO: shankartest.azurecr.io/shankar-bamserver
+  REGION: us-west-1
+  ACR_USERNAME: shankartest
+  ACR_PASSWORD: zieluBp1OUepT8O7dEpJksFZoXld+eA9qQdXKpOqtq+ACRCnqDtC
+  CONTAINER_APPNAME: sg-bamserver
+  TEST_AZURE_CREDENTIALS: n_C8Q~myQoBSsinuRtAqSIJsWqapCTE1n0T6XbzZ
+  RESOURCE_GROUP: test-rg
+
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
+  build_and_deploy:
+    name: 'docker image creation'
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-      
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Azure Container Registry login
+        run: |
+          # az acr login --name ${{ env.ACR_NAME }}
+          #az acr login --name ${{ env.ACR_NAME }} --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          az acr login --name ${{ env.ACR_NAME }} --username ${{ env.ACR_USERNAME }} --password ${{ env.ACR_PASSWORD }}
+
+      - run: docker context create builders
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-    
-      - name: Build and push Docker image
+          endpoint: builders
+       
+      - name: Set HEAD SHA SHORT
+        id: head_sha_short
+        run: |
+          echo "head_sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Check HEAD SHA SHORT
+        run: echo ${{ steps.head_sha_short.outputs.head_sha_short }}
+        shell: bash
+        
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          flavor: |
+            latest=false
+          images: ${{ env.ACR_REPO }}
+          tags: |
+            type=raw,value=${{ steps.head_sha_short.outputs.head_sha_short }}
+
+      - name: Build and push the Docker image
         uses: docker/build-push-action@v4
         with:
-          context: DockerFileFolder/
+          context: .
           push: true
-          tags: rekhugopal/testrepo:latest
+          file: ./DockerFileFolder/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.TEST_AZURE_CREDENTIALS }}
+      - name: Build and deploy Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          acrName: ${{ env.ACR_NAME }}
+          containerAppName: ${{ env.CONTAINER_APPNAME }}
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          imageToDeploy: ${{ env.ACR_NAME }}.azurecr.io/app:${{ github.sha }}
