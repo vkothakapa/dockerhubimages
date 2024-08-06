@@ -1,6 +1,9 @@
 name: Build and Push Docker image to Docker Hub
 
-on: push
+on:
+  push:
+    branches:
+      - main
 
 env:
   ACR_NAME: shankartest
