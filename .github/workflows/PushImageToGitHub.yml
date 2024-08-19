@@ -1,86 +1,36 @@
-name: Build and Push Docker image to Docker Hub
-permissions:
-  id-token: write
-  contents: read
+name: 'Build and Push Bamserver Image to ACR'
+
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
 env:
-  ACR_NAME: shankartest
-  ACR_REPO: shankartest.azurecr.io/shankar-bamserver
+  ACR_NAME: fayaztest1
+  ACR_REPO: fayaztest1.azurecr.io
   REGION: us-west-1
-  ACR_USERNAME: shankartest
-  ACR_PASSWORD: zieluBp1OUepT8O7dEpJksFZoXld+eA9qQdXKpOqtq+ACRCnqDtC
-  CONTAINER_APPNAME: sg-bamserver
-  RESOURCE_GROUP: test-rg
-  CONTAINER_APP_ENV: managedEnvironment-testrg-8dc9
+  ACR_USERNAME: fayaztest1
+  ACR_PASSWORD: BWfvrlT1cUvWuZcYnD2fjQydFgwTUSSV5cSQ6miFam+ACRB4EfsF
 
 jobs:
   build_and_deploy:
-    name: 'docker image creation'
+    name: 'Docker Image Creation'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-      - name: Azure CLI Login
-        id: az-login
-        run: |
-          echo "Please run 'az login' command and authenticate."
-          az login --use-device-code
-          echo "Azure login completed."
-
-      - name: Azure Container Registry login
+      - name: Azure Container Registry Login
         run: |
           az acr login --name ${{ env.ACR_NAME }} --username ${{ env.ACR_USERNAME }} --password ${{ env.ACR_PASSWORD }}
 
-      - run: docker context create builders
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          endpoint: builders
-       
-      - name: Set HEAD SHA SHORT
-        id: head_sha_short
-        run: |
-          echo "head_sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-        shell: bash
 
-      - name: Check HEAD SHA SHORT
-        run: echo ${{ steps.head_sha_short.outputs.head_sha_short }}
-        shell: bash
-        
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          flavor: |
-            latest=false
-          images: ${{ env.ACR_REPO }}
-          tags: |
-            type=raw,value=${{ steps.head_sha_short.outputs.head_sha_short }}
-
-      - name: Build and push the Docker image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          file: ./DockerFileFolder/Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Execute Azure Container Apps Build and Deploy Action
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: ${{ env.ACR_REPO }}:${{ steps.head_sha_short.outputs.head_sha_short }}
-          containerAppName: ${{ env.CONTAINER_APPNAME }}
-          containerAppEnvironment: ${{ env.CONTAINER_APP_ENV }}
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
-
+          file: ./bamserver/Dockerfile
+          tags: ${{ env.ACR_REPO }}:${{ github.ref_name }} 
