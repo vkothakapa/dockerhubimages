@@ -1,8 +1,7 @@
 name: 'Build and Push Bamserver Image to ACR'
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 env:
   ACR_NAME: fayaztest1
