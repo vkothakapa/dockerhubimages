@@ -6,7 +6,7 @@ on:
 
 env:
   ACR_NAME: fayaztest1
-  ACR_REPO: fayaztest1.azurecr.io
+  ACR_REPO: fayaztest1.azurecr.io/fayaz-bamserver
   REGION: us-west-1
   ACR_USERNAME: fayaztest1
   ACR_PASSWORD: BWfvrlT1cUvWuZcYnD2fjQydFgwTUSSV5cSQ6miFam+ACRB4EfsF
