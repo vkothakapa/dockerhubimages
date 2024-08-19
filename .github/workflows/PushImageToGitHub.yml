@@ -32,5 +32,5 @@ jobs:
         with:
           context: .
           push: true
-          file: ./bamserver/Dockerfile
+          file: ./DockerFileFolder/Dockerfile
           tags: ${{ env.ACR_REPO }}:${{ github.ref_name }} 
