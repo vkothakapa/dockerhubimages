@@ -1,23 +1,40 @@
-name: 'Build and Push Bamserver Image to ACR'
+name: 'Build, Push, and Deploy Bamserver'
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - feature/fayaz-test
 
 env:
-  ACR_NAME: fayaztest1
-  ACR_REPO: fayaztest1.azurecr.io/fayaz-bamserver
+  ACR_NAME: bamserver1
+  ACR_REPO: bamserver1.azurecr.io/fa-bamserver
   REGION: us-west-1
-  ACR_USERNAME: fayaztest1
-  ACR_PASSWORD: BWfvrlT1cUvWuZcYnD2fjQydFgwTUSSV5cSQ6miFam+ACRB4EfsF
+  ACR_USERNAME: bamserver1
+  ACR_PASSWORD: 5Ym43InuSNojBXK5/wkzLT3UAX08CAGU0JRvlfIdsi+ACRDuySEJ
+  SERVER_USER: ubuntu
+  SERVER_IP: 13.233.199.2
+  SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }} # Store your private SSH key in GitHub secrets
 
 jobs:
   build_and_deploy:
-    name: 'Docker Image Creation'
+    name: 'Docker Image Creation and Deployment'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch All Tags
+        run: git fetch --tags
+
+      - name: Get Latest Release Tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "Latest release tag: $latest_tag"
+          echo "tag=$latest_tag" >> $GITHUB_ENV
 
       - name: Azure Container Registry Login
         run: |
@@ -31,5 +48,21 @@ jobs:
         with:
           context: .
           push: true
-          file: ./DockerFileFolder/Dockerfile
-          tags: ${{ env.ACR_REPO }}:${{ github.ref_name }} 
+          file: ./bamserver/Dockerfile
+          tags: ${{ env.ACR_REPO }}:${{ env.tag }}
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USER }}
+          key: ${{ env.SERVER_SSH_KEY }}
+          script: |
+            echo "Pulling Docker image..."
+            docker login ${{ env.ACR_REPO }} -u ${{ env.ACR_USERNAME }} -p ${{ env.ACR_PASSWORD }}
+            docker pull ${{ env.ACR_REPO }}:${{ env.tag }}
+            echo "Stopping and removing old container..."
+            docker stop bamserver-container || true
+            docker rm bamserver-container || true
+            echo "Deploying new container..."
+            docker run -d --name bamserver-container -p 3000:3000 ${{ env.ACR_REPO }}:${{ env.tag }}
