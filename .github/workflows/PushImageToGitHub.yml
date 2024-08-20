@@ -3,7 +3,7 @@ name: 'Build, Push, and Deploy Bamserver'
 on:
   push:
     branches:
-      - feature/test
+      - test
 
 env:
   ACR_NAME: bamserver1
