@@ -66,3 +66,4 @@ jobs:
             docker rm bamserver-container || true
             echo "Deploying new container..."
             docker run -d --name bamserver-container -p 3000:3000 ${{ env.ACR_REPO }}:${{ env.tag }}
+            sudo docker image prune -a -f
