@@ -48,7 +48,7 @@ jobs:
         with:
           context: .
           push: true
-          file: ./bamserver/Dockerfile
+          file: ./DockerFileFolder/Dockerfile
           tags: ${{ env.ACR_REPO }}:${{ env.tag }}
 
       - name: Deploy to Server via SSH
