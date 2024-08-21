@@ -12,7 +12,7 @@ env:
   ACR_USERNAME: bamserver1
   ACR_PASSWORD: 5Ym43InuSNojBXK5/wkzLT3UAX08CAGU0JRvlfIdsi+ACRDuySEJ
   SERVER_USER: ubuntu
-  SERVER_IP: 13.233.199.2
+  SERVER_IP: 172.31.64.10
   SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }} # Store your private SSH key in GitHub secrets
 
 jobs:
